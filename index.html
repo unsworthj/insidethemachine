@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inside the Machine</title>
+<style>
+:root{--bg:#020b14;--panel:#061827;--cyan:#18c8ff;--blue:#087cff;--green:#19e49b;--text:#f7fbff;--muted:#a7bac9;--line:#0d6d99}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at 35% -10%,#0b3152 0,transparent 35%),var(--bg);color:var(--text)}
+header{height:88px;display:flex;align-items:center;padding:0 30px;border-bottom:1px solid #0c4a6a;background:#03111ded;gap:18px}
+.mark{width:46px;height:46px;border:3px solid var(--cyan);border-radius:8px;display:grid;place-items:center;color:var(--cyan);font-weight:950;box-shadow:0 0 18px #18c8ff44}
+.brand{font-size:clamp(1.5rem,3vw,2.8rem);font-weight:950;letter-spacing:.015em}.brand span{color:var(--cyan)}.sub{color:var(--muted);font-size:.72rem;letter-spacing:.28em;margin-top:2px}.spacer{flex:1}
+.help{background:#061827;color:white;border:1px solid #176087;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}
+main{max-width:1540px;margin:auto;padding:18px}.layout{display:grid;grid-template-columns:minmax(620px,1.42fr) minmax(400px,.82fr);gap:18px}
+.pc{position:relative;background:#020912;border:1px solid #125578;border-radius:18px;overflow:hidden;aspect-ratio:1.08}
+.pc>img{width:100%;height:100%;object-fit:contain;display:block}
+.hot{position:absolute;width:34px;height:34px;border-radius:50%;border:5px solid #a4edff;background:#079fff;box-shadow:0 0 0 7px #078dff66,0 0 24px 8px #00b7ff99;transform:translate(-50%,-50%);cursor:pointer;transition:.18s;z-index:3}
+.hot:hover,.hot.sel{transform:translate(-50%,-50%) scale(1.2);background:#78ecff}.hot.done{background:var(--green);border-color:#c8ffec;box-shadow:0 0 0 7px #19e49b55,0 0 22px #19e49baa}
+.lab{position:absolute;z-index:4;transform:translate(22px,-50%);background:#061827ee;border:1px solid var(--cyan);border-radius:9px;padding:8px 11px;font-size:.83rem;font-weight:900;opacity:0;pointer-events:none;white-space:nowrap;transition:.15s}.hot:hover+.lab,.hot.sel+.lab{opacity:1}
+.card{min-height:700px;background:linear-gradient(180deg,#061827,#03111d);border:1px solid #11658f;border-radius:18px;padding:23px;box-shadow:0 18px 60px #0007}.empty{height:650px;display:grid;place-items:center;text-align:center;color:var(--muted)}.empty>div{max-width:330px}.empty .pulse{font-size:3rem;color:var(--cyan);filter:drop-shadow(0 0 10px #18c8ff)}
+.badge{display:inline-block;border:1px solid #168565;background:#062820;color:var(--green);border-radius:999px;padding:6px 10px;font-size:.7rem;font-weight:950;letter-spacing:.08em}.card h1{font-size:2.45rem;margin:12px 0 0}.full{font-size:1.08rem;font-weight:750;margin:3px 0 14px}.product{width:100%;height:235px;object-fit:contain;background:#03101b;border:1px solid #0d78a8;border-radius:14px;display:block}
+.desc{font-size:1.04rem;line-height:1.55;margin:15px 2px}.info{border:1px solid #0c75a4;border-radius:13px;padding:13px 15px;margin-top:11px;line-height:1.45;color:#d2e1ec}.info b{display:block;color:var(--cyan);margin-bottom:5px}
+.progress{max-width:1540px;margin:0 auto 18px;padding:0 18px}.bar{display:flex;align-items:center;gap:15px;background:#041522;border:1px solid #11658f;border-radius:15px;padding:14px 18px}.barTitle{color:var(--cyan);font-size:.76rem;font-weight:950}.dots{display:flex;gap:10px}.dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--cyan)}.dot.on{background:var(--green);border-color:var(--green);box-shadow:0 0 12px #19e49b99}.count{font-size:1.45rem;font-weight:950}.msg{margin-left:auto;color:var(--muted);font-size:.9rem}
+.primary{border:0;border-radius:10px;padding:13px 18px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#00111d;font-weight:950;cursor:pointer}.primary.locked{opacity:.35;pointer-events:none}
+.quiz{display:none;max-width:1000px;margin:25px auto;padding:28px;background:#061827;border:1px solid #11658f;border-radius:18px}.quiz.show{display:block}.quiz h2{font-size:2rem}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.answers button{background:#092238;color:white;border:1px solid #176087;border-radius:10px;padding:14px;font-weight:800;cursor:pointer}.answers button:hover{border-color:var(--cyan)}.feedback{min-height:30px;font-weight:900;margin-top:12px}
+dialog{background:#061827;color:white;border:1px solid #11658f;border-radius:18px;padding:25px;max-width:500px}dialog::backdrop{background:#000c}.muted{color:var(--muted);line-height:1.55}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.pc{aspect-ratio:1}.card{min-height:auto}.empty{height:350px}.msg{display:none}}
+
+.landing{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 42%,#0b3152 0,#031522 38%,#01070d 78%);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .8s ease,visibility .8s}
+.landing.gone{opacity:0;visibility:hidden;pointer-events:none}
+.land-inner{width:min(1500px,96vw);height:min(920px,94vh);position:relative;display:grid;grid-template-columns:1.1fr .9fr;align-items:center}
+.land-copy{padding:5vw;z-index:3}.land-kicker{font-size:.78rem;font-weight:950;letter-spacing:.25em;color:var(--cyan);margin-bottom:16px}
+.land-title{font-size:clamp(3.5rem,7vw,7.8rem);line-height:.83;letter-spacing:-.06em;margin:0;font-weight:950}.land-title span{color:var(--cyan);text-shadow:0 0 28px #18c8ff44}
+.land-copy p{max-width:560px;color:#b6c8d5;font-size:1.15rem;line-height:1.65;margin:25px 0 30px}
+.enter{position:relative;border:1px solid #2ed4ff;border-radius:14px;background:linear-gradient(135deg,#0b263a,#073c5d);color:white;padding:17px 25px;font-weight:950;letter-spacing:.04em;cursor:pointer;box-shadow:0 0 0 0 #18c8ff55,0 12px 40px #0008;transition:.25s;overflow:hidden}
+.enter:before{content:"";position:absolute;inset:-2px;background:linear-gradient(90deg,transparent,#5ee7ff66,transparent);transform:translateX(-120%);animation:sweep 2.8s infinite}
+.enter:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 32px #18c8ff55,0 16px 45px #0009}
+@keyframes sweep{60%,100%{transform:translateX(120%)}}
+.case-stage{height:88%;position:relative;display:flex;align-items:center;justify-content:center;perspective:1000px}
+.closedcase{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 35px 55px #000c);transition:transform 1.15s cubic-bezier(.2,.8,.2,1),opacity .8s}
+.case-glow{position:absolute;width:70%;height:65%;background:#008cff33;filter:blur(80px);border-radius:50%;z-index:-1;animation:breathe 2.8s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.5;transform:scale(1.08)}}
+.landing.opening .closedcase{transform:scale(1.16);opacity:0}.landing.opening .land-copy{animation:copyAway .75s forwards}
+@keyframes copyAway{to{opacity:0;transform:translateX(-40px)}}
+.reveal-flash{position:absolute;inset:0;background:#49d7ff;opacity:0;pointer-events:none}.landing.opening .reveal-flash{animation:flash .85s .35s}
+@keyframes flash{0%,100%{opacity:0}45%{opacity:.22}}
+@media(max-width:850px){.land-inner{grid-template-columns:1fr;text-align:center}.land-copy{padding:30px}.land-copy p{margin-left:auto;margin-right:auto}.case-stage{position:absolute;inset:20%;opacity:.2}.land-copy{z-index:4}}
+</style></head><body>
+<section class="landing" id="landing">
+  <div class="reveal-flash"></div>
+  <div class="land-inner">
+    <div class="land-copy">
+      <div class="land-kicker">HARDWARE EXPLORER // Y8</div>
+      <h1 class="land-title">WHAT'S<br><span>INSIDE?</span></h1>
+      <p>A computer might look like a simple black box from the outside. But behind the side panel, seven important components are working together. Ready to take a look?</p>
+      <button class="enter" onclick="enterMachine()">OPEN THE COMPUTER &nbsp;→</button>
+    </div>
+    <div class="case-stage">
+      <div class="case-glow"></div>
+      <img class="closedcase" src="images/pc-closed.jpg" alt="Closed desktop computer case">
+    </div>
+  </div>
+</section>
+
+<header><div class="mark">▣</div><div><div class="brand">INSIDE <span>THE MACHINE</span></div><div class="sub">EXPLORE. LEARN. TEST YOUR KNOWLEDGE.</div></div><div class="spacer"></div><button class="help" onclick="help.showModal()">ⓘ &nbsp; HOW TO USE</button></header>
+<main><div class="layout"><section class="pc" id="pc"><img src="images/pc-interior.jpg" alt="Open desktop computer case"></section>
+<aside class="card" id="card"><div class="empty"><div><div class="pulse">◎</div><h2>Discover the components</h2><p>Click a glowing hotspot inside the computer. Identify each component, see what the real part looks like and learn what it does.</p></div></div></aside></div></main>
+<div class="progress"><div class="bar"><div class="barTitle">COMPONENTS<br>DISCOVERED</div><div class="dots" id="dots"></div><div class="count" id="count">0 / 7</div><div class="msg" id="msg">🔒 Find all 7 components to unlock the knowledge check.</div><button id="quizButton" class="primary locked" onclick="startQuiz()">TEST YOUR KNOWLEDGE →</button></div></div>
+<section class="quiz" id="quiz"><div id="qnum" style="color:var(--cyan);font-weight:950"></div><h2 id="qtext"></h2><p class="muted">Choose the component that matches the description.</p><div class="answers" id="answers"></div><div class="feedback" id="feedback"></div></section>
+<dialog id="help"><h2>How to use</h2><p class="muted">Click each glowing blue hotspot in the open computer. Read the component card and study the close-up image. Find all seven components to unlock the knowledge check.</p><button class="primary" onclick="help.close()">GOT IT</button></dialog>
+<script>
+function enterMachine(){
+  const l=document.getElementById('landing');
+  l.classList.add('opening');
+  setTimeout(()=>l.classList.add('gone'),1050);
+}
+const parts={
+psu:{name:"Power Supply",full:"Power Supply Unit (PSU)",img:"images/psu.jpg",desc:"The power supply provides electrical power to the components inside the computer.",fact:"It converts electricity from the wall into the types of power the computer's components need.",look:"A metal box, usually at the top or bottom of the case, with power cables coming from it.",x:26,y:18},
+cooling:{name:"Cooling Fan",full:"Cooling System",img:"images/cooling.jpg",desc:"Cooling fans move heat away from computer components and help stop them becoming too hot.",fact:"Processors can produce lots of heat when they are working hard, so cooling is essential.",look:"A circular fan with several blades. Fans may be attached to the case or sit above a heatsink.",x:10,y:41},
+cpu:{name:"CPU",full:"Central Processing Unit",img:"images/cpu.jpg",desc:"The CPU processes instructions and controls what the computer does. It performs calculations and makes decisions while programs are running.",fact:"The CPU fits into a special socket on the motherboard.",look:"A small square chip. In a working PC it is usually hidden underneath a heatsink or cooling fan.",x:35,y:43},
+ram:{name:"RAM",full:"Random Access Memory",img:"images/ram.jpg",desc:"RAM temporarily stores the programs and data the computer is currently using. Its contents are lost when the computer is switched off.",fact:"More RAM lets a computer keep more programs and data ready to use at the same time.",look:"Long, thin circuit-board sticks with several memory chips. They fit into slots on the motherboard.",x:52,y:42},
+motherboard:{name:"Motherboard",full:"Main Circuit Board",img:"images/motherboard.jpg",desc:"The motherboard is the main circuit board inside a computer. It connects the components together so they can communicate.",fact:"The CPU, RAM and many other components connect directly to the motherboard.",look:"The largest circuit board in the computer, covered in slots, sockets, chips and connectors.",x:25,y:57},
+gpu:{name:"Graphics Card",full:"Graphics Processing Unit (GPU)",img:"images/gpu.jpg",desc:"The graphics card processes graphics and creates the images that are displayed on your screen.",fact:"GPUs are especially useful for games, video editing, animation and 3D graphics.",look:"Usually a large card with cooling fans. It plugs into a long slot on the motherboard.",x:39,y:69},
+ssd:{name:"SSD",full:"Solid State Drive",img:"images/ssd.jpg",desc:"The SSD stores programs and files even when the computer is switched off. This is called secondary storage.",fact:"Unlike RAM, the data on an SSD is not lost when the power is turned off.",look:"An SSD may be a small rectangular drive or a slim circuit-board stick called an M.2 SSD.",x:53,y:80}
+};
+const pc=document.getElementById("pc"),found=new Set();
+Object.entries(parts).forEach(([id,p])=>{const h=document.createElement("button");h.className="hot";h.style.left=p.x+"%";h.style.top=p.y+"%";h.ariaLabel=p.name;h.onclick=()=>showPart(id,h);pc.appendChild(h);const l=document.createElement("div");l.className="lab";l.style.left=p.x+"%";l.style.top=p.y+"%";l.textContent=p.name;pc.appendChild(l)});
+dots.innerHTML=Object.keys(parts).map(()=>'<span class="dot"></span>').join("");
+function showPart(id,h){found.add(id);document.querySelectorAll(".hot").forEach(x=>x.classList.remove("sel"));h.classList.add("sel","done");const p=parts[id];card.innerHTML=`<span class="badge">✓ DISCOVERED</span><h1>${p.name}</h1><div class="full">${p.full}</div><img class="product" src="${p.img}" alt="${p.name}"><div class="desc">${p.desc}</div><div class="info"><b>💡 GOOD TO KNOW</b>${p.fact}</div><div class="info"><b>⌕ WHAT SHOULD I LOOK FOR?</b>${p.look}</div>`;update()}
+function update(){count.textContent=found.size+" / 7";document.querySelectorAll(".dot").forEach((d,i)=>d.classList.toggle("on",i<found.size));if(found.size===7){quizButton.classList.remove("locked");msg.textContent="✓ All components found. Knowledge check unlocked!"}}
+const qs=[["Which component processes instructions and controls what the computer does?","cpu"],["Which component temporarily stores programs and data currently being used?","ram"],["Which component connects the internal components together?","motherboard"],["Which component stores files when the computer is switched off?","ssd"],["Which component processes graphics for the screen?","gpu"],["Which component supplies electrical power to the computer?","psu"],["Which component helps stop computer parts becoming too hot?","cooling"]];
+let order=[],qi=0,score=0,wrong=false;
+function startQuiz(){order=[...qs].sort(()=>Math.random()-.5);qi=0;score=0;wrong=false;document.querySelector("main").style.display="none";document.querySelector(".progress").style.display="none";quiz.classList.add("show");renderQ();scrollTo(0,0)}
+function renderQ(){if(qi>=7){quiz.innerHTML=`<div style="text-align:center;padding:35px"><div style="font-size:4.5rem;font-weight:950;color:var(--green)">${score}/7</div><h2>System knowledge check complete.</h2><p class="muted">${score===7?"Perfect score. You identified every component from its job.":score>=5?"Strong hardware knowledge. Explore again and aim for 7/7.":"Revisit the hardware, then give the knowledge check another go."}</p><button class="primary" onclick="location.reload()">EXPLORE AGAIN</button></div>`;return}wrong=false;const [q,a]=order[qi];qnum.textContent=`QUESTION ${qi+1} / 7`;qtext.textContent=q;feedback.textContent="";answers.innerHTML=Object.keys(parts).sort(()=>Math.random()-.5).map(id=>`<button onclick="answer('${id}','${a}')">${parts[id].name}</button>`).join("")}
+function answer(id,a){if(id===a){if(!wrong)score++;feedback.style.color="var(--green)";feedback.textContent="✓ Correct";setTimeout(()=>{qi++;renderQ()},550)}else{wrong=true;feedback.style.color="#ff7181";feedback.textContent="Not quite. Try again."}}
+</script></body></html>
